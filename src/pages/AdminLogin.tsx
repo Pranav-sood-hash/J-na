@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { ADMIN_CONFIG } from '@/config/admin';
 import { z } from 'zod';
 
 const loginSchema = z.object({
@@ -14,14 +15,16 @@ const loginSchema = z.object({
 });
 
 const AdminLogin = () => {
-  const { user, isAdmin, isLoading, signIn, signUp } = useAuth();
+  const { user, isAdmin, isLoading, signIn } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({
+    email: ADMIN_CONFIG.email,
+    password: ADMIN_CONFIG.password
+  });
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   useEffect(() => {
@@ -51,38 +54,32 @@ const AdminLogin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validate()) return;
 
     setIsSubmitting(true);
 
     try {
-      const { error } = isSignUp 
-        ? await signUp(formData.email, formData.password)
-        : await signIn(formData.email, formData.password);
+      const { error } = await signIn(formData.email, formData.password);
 
       if (error) {
         let message = error.message;
         if (error.message.includes('Invalid login credentials')) {
           message = 'Invalid email or password';
-        } else if (error.message.includes('User already registered')) {
-          message = 'This email is already registered. Please sign in.';
         }
-        
+
         toast({
-          title: isSignUp ? 'Sign up failed' : 'Sign in failed',
+          title: 'Sign in failed',
           description: message,
           variant: 'destructive',
         });
         return;
       }
 
-      if (isSignUp) {
-        toast({
-          title: 'Account created',
-          description: 'Your account has been created. Note: You need admin privileges to access the dashboard.',
-        });
-      }
+      toast({
+        title: 'Success',
+        description: 'Signed in successfully',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -102,9 +99,7 @@ const AdminLogin = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Admin Portal</h1>
-          <p className="text-muted-foreground">
-            {isSignUp ? 'Create your admin account' : 'Sign in to manage your portfolio'}
-          </p>
+          <p className="text-muted-foreground">Sign in to manage your portfolio</p>
         </div>
 
         {/* Form Card */}
@@ -120,7 +115,7 @@ const AdminLogin = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="admin@example.com"
+                  placeholder={ADMIN_CONFIG.email}
                   className="pl-10"
                 />
               </div>
@@ -164,24 +159,13 @@ const AdminLogin = () => {
               {isSubmitting ? (
                 <>
                   <Loader2 size={18} className="mr-2 animate-spin" />
-                  {isSignUp ? 'Creating account...' : 'Signing in...'}
+                  Signing in...
                 </>
               ) : (
-                isSignUp ? 'Create Account' : 'Sign In'
+                'Sign In'
               )}
             </Button>
           </form>
-
-          {/* Toggle Sign Up / Sign In */}
-          <div className="mt-6 text-center">
-            <button
-              type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-            </button>
-          </div>
         </div>
 
         {/* Back Link */}
