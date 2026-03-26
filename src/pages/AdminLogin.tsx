@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { ADMIN_CONFIG } from '@/config/admin';
 import { z } from 'zod';
 
 const loginSchema = z.object({
@@ -21,7 +22,10 @@ const AdminLogin = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({
+    email: ADMIN_CONFIG.email,
+    password: ADMIN_CONFIG.password
+  });
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   useEffect(() => {
@@ -120,7 +124,7 @@ const AdminLogin = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="admin@example.com"
+                  placeholder={ADMIN_CONFIG.email}
                   className="pl-10"
                 />
               </div>
