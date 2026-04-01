@@ -59,7 +59,10 @@ const LoadingIntro = ({ onComplete }: LoadingIntroProps) => {
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              animation: `float-gentle ${4 + Math.random() * 4}s ease-in-out infinite`,
+              animationName: 'float-gentle',
+              animationDuration: `${4 + Math.random() * 4}s`,
+              animationTimingFunction: 'ease-in-out',
+              animationIterationCount: 'infinite',
               animationDelay: `${Math.random() * 2}s`,
             }}
           />
@@ -82,7 +85,10 @@ const LoadingIntro = ({ onComplete }: LoadingIntroProps) => {
               className="laptop-screen w-80 md:w-96 h-52 md:h-60 rounded-t-lg overflow-hidden relative"
               style={{
                 transformOrigin: 'bottom center',
-                animation: loadingProgress > 10 ? 'laptop-open 1s ease-out forwards' : 'none',
+                animationName: loadingProgress > 10 ? 'laptop-open' : 'none',
+                animationDuration: '1s',
+                animationTimingFunction: 'ease-out',
+                animationFillMode: 'forwards',
                 animationDelay: '0.5s',
               }}
             >
@@ -90,7 +96,10 @@ const LoadingIntro = ({ onComplete }: LoadingIntroProps) => {
               <div 
                 className="absolute inset-0 p-4 flex flex-col justify-between"
                 style={{
-                  animation: loadingProgress > 30 ? 'screen-on 0.8s ease-out forwards' : 'none',
+                  animationName: loadingProgress > 30 ? 'screen-on' : 'none',
+                  animationDuration: '0.8s',
+                  animationTimingFunction: 'ease-out',
+                  animationFillMode: 'forwards',
                   animationDelay: '1s',
                   opacity: loadingProgress > 30 ? 1 : 0,
                 }}
