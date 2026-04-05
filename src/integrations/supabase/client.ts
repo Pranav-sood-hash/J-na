@@ -52,8 +52,8 @@ class LocalStorageTable {
 
   insert(data: any) {
     return {
-      select: () => ({
-        single: async () => {
+      select: () => {
+        const executeInsert = async () => {
           const allData = this.getData();
           const newItem = {
             ...data,
@@ -63,30 +63,26 @@ class LocalStorageTable {
           };
           allData.push(newItem);
           this.saveData(allData);
-          return { data: newItem, error: null };
-        },
-        then: async (callback: any) => {
-          const allData = this.getData();
-          const newItem = {
-            ...data,
-            id: crypto.randomUUID(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
-          allData.push(newItem);
-          this.saveData(allData);
-          callback({ data: newItem, error: null });
-        },
-        catch: () => {}
-      })
+          return newItem;
+        };
+
+        return {
+          single: () => executeInsert().then(newItem => ({ data: newItem, error: null })),
+          then: async (callback: any) => {
+            const newItem = await executeInsert();
+            callback({ data: newItem, error: null });
+          },
+          catch: () => {}
+        };
+      }
     };
   }
 
   update(data: any) {
     return {
       eq: (column: string, value: any) => ({
-        select: () => ({
-          single: async () => {
+        select: () => {
+          const executeUpdate = async () => {
             const allData = this.getData();
             const index = allData.findIndex(item => item[column] === value);
             if (index !== -1) {
@@ -99,24 +95,17 @@ class LocalStorageTable {
               return { data: allData[index], error: null };
             }
             return { data: null, error: { message: 'Not found' } };
-          },
-          then: async (callback: any) => {
-            const allData = this.getData();
-            const index = allData.findIndex(item => item[column] === value);
-            if (index !== -1) {
-              allData[index] = {
-                ...allData[index],
-                ...data,
-                updated_at: new Date().toISOString(),
-              };
-              this.saveData(allData);
-              callback({ data: allData[index], error: null });
-            } else {
-              callback({ data: null, error: { message: 'Not found' } });
-            }
-          },
-          catch: () => {}
-        })
+          };
+
+          return {
+            single: () => executeUpdate(),
+            then: async (callback: any) => {
+              const result = await executeUpdate();
+              callback(result);
+            },
+            catch: () => {}
+          };
+        }
       })
     };
   }
