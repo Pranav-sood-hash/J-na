@@ -55,26 +55,22 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
 
     setIsUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `${formData.type}s/${fileName}`;
+      // Convert file to data URL for local storage
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        setFormData(prev => ({ ...prev, media_url: dataUrl }));
 
-      const { error: uploadError } = await supabase.storage
-        .from('portfolio-media')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('portfolio-media')
-        .getPublicUrl(filePath);
-
-      setFormData(prev => ({ ...prev, media_url: publicUrl }));
-      
-      toast({
-        title: 'File uploaded',
-        description: 'Your file has been uploaded successfully.',
-      });
+        toast({
+          title: 'File uploaded',
+          description: 'Your file has been uploaded successfully.',
+        });
+        setIsUploading(false);
+      };
+      reader.onerror = () => {
+        throw new Error('Failed to read file');
+      };
+      reader.readAsDataURL(file);
     } catch (error) {
       console.error('Upload error:', error);
       toast({
@@ -82,7 +78,6 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
         description: 'Failed to upload file. Please try again.',
         variant: 'destructive',
       });
-    } finally {
       setIsUploading(false);
     }
   };
