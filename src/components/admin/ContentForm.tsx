@@ -167,6 +167,10 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
                   src={formData.media_url}
                   alt="Preview"
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback if image fails to load
+                    (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23333" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" fill="%23999" text-anchor="middle" dy=".3em" font-size="16"%3EImage Preview%3C/text%3E%3C/svg%3E';
+                  }}
                 />
               )}
               <button
@@ -176,6 +180,17 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
               >
                 <X size={16} />
               </button>
+            </div>
+          )}
+
+          {formData.type === 'video' && formData.external_link && !formData.media_url && (
+            <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
+              <iframe
+                src={formData.external_link.includes('youtube') ? formData.external_link.replace('watch?v=', 'embed/') : formData.external_link}
+                title="Video Preview"
+                className="w-full h-full"
+                allowFullScreen
+              />
             </div>
           )}
           
@@ -223,6 +238,19 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
             onChange={(e) => setFormData(prev => ({ ...prev, external_link: e.target.value }))}
             placeholder={formData.type === 'video' ? 'https://youtube.com/...' : 'https://example.com'}
           />
+          {formData.external_link && formData.type === 'website' && (
+            <div className="mt-3 p-3 bg-muted rounded-lg">
+              <p className="text-xs text-muted-foreground mb-2">Preview:</p>
+              <a
+                href={formData.external_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline text-sm break-all"
+              >
+                {formData.external_link}
+              </a>
+            </div>
+          )}
         </div>
       )}
 
