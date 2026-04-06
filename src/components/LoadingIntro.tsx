@@ -81,7 +81,7 @@ const LoadingIntro = ({ onComplete }: LoadingIntroProps) => {
           {/* Laptop Base */}
           <div className="relative">
             {/* Laptop Screen */}
-            <div 
+            <div
               className="laptop-screen w-80 md:w-96 h-52 md:h-60 rounded-t-lg overflow-hidden relative"
               style={{
                 transformOrigin: 'bottom center',
@@ -93,7 +93,7 @@ const LoadingIntro = ({ onComplete }: LoadingIntroProps) => {
               }}
             >
               {/* Screen Content */}
-              <div 
+              <div
                 className="absolute inset-0 p-4 flex flex-col justify-between"
                 style={{
                   animationName: loadingProgress > 30 ? 'screen-on' : 'none',

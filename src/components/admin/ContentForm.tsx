@@ -55,26 +55,22 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
 
     setIsUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `${formData.type}s/${fileName}`;
+      // Convert file to data URL for local storage
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        setFormData(prev => ({ ...prev, media_url: dataUrl }));
 
-      const { error: uploadError } = await supabase.storage
-        .from('portfolio-media')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('portfolio-media')
-        .getPublicUrl(filePath);
-
-      setFormData(prev => ({ ...prev, media_url: publicUrl }));
-      
-      toast({
-        title: 'File uploaded',
-        description: 'Your file has been uploaded successfully.',
-      });
+        toast({
+          title: 'File uploaded',
+          description: 'Your file has been uploaded successfully.',
+        });
+        setIsUploading(false);
+      };
+      reader.onerror = () => {
+        throw new Error('Failed to read file');
+      };
+      reader.readAsDataURL(file);
     } catch (error) {
       console.error('Upload error:', error);
       toast({
@@ -82,7 +78,6 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
         description: 'Failed to upload file. Please try again.',
         variant: 'destructive',
       });
-    } finally {
       setIsUploading(false);
     }
   };
@@ -172,6 +167,10 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
                   src={formData.media_url}
                   alt="Preview"
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback if image fails to load
+                    (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23333" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" fill="%23999" text-anchor="middle" dy=".3em" font-size="16"%3EImage Preview%3C/text%3E%3C/svg%3E';
+                  }}
                 />
               )}
               <button
@@ -181,6 +180,17 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
               >
                 <X size={16} />
               </button>
+            </div>
+          )}
+
+          {formData.type === 'video' && formData.external_link && !formData.media_url && (
+            <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
+              <iframe
+                src={formData.external_link.includes('youtube') ? formData.external_link.replace('watch?v=', 'embed/') : formData.external_link}
+                title="Video Preview"
+                className="w-full h-full"
+                allowFullScreen
+              />
             </div>
           )}
           
@@ -228,6 +238,19 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
             onChange={(e) => setFormData(prev => ({ ...prev, external_link: e.target.value }))}
             placeholder={formData.type === 'video' ? 'https://youtube.com/...' : 'https://example.com'}
           />
+          {formData.external_link && formData.type === 'website' && (
+            <div className="mt-3 p-3 bg-muted rounded-lg">
+              <p className="text-xs text-muted-foreground mb-2">Preview:</p>
+              <a
+                href={formData.external_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline text-sm break-all"
+              >
+                {formData.external_link}
+              </a>
+            </div>
+          )}
         </div>
       )}
 
