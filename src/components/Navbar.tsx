@@ -44,12 +44,12 @@ const Navbar = () => {
       <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${isScrolled ? 'glass py-3' : 'bg-transparent py-6'}`}>
         <div className="container mx-auto px-6 flex items-center justify-between">
           {/* Logo */}
-          <a href="#" className="text-xl font-semibold hero-text clickable" onClick={() => window.scrollTo({
+          <button className="text-xl font-semibold hero-text clickable" onClick={() => window.scrollTo({
           top: 0,
           behavior: 'smooth'
         })}>
             Portfolio
-          </a>
+          </button>
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
