@@ -23,7 +23,7 @@ const socialLinks = [
   {
     name: 'YouTube',
     icon: Youtube,
-    url: 'https://youtube.com/@paap_life?si=znUX4N2Q5rK0PLhj',
+    url: 'https://www.youtube.com/@Tej_Vah',
     color: 'from-destructive/20 to-destructive/30',
     description: 'Video content',
   },
