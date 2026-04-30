@@ -22,8 +22,8 @@ const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    email: ADMIN_CONFIG.email,
-    password: ADMIN_CONFIG.password
+    email: '',
+    password: ''
   });
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
@@ -115,7 +115,7 @@ const AdminLogin = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder={ADMIN_CONFIG.email}
+                  placeholder="Enter your email"
                   className="pl-10"
                 />
               </div>
