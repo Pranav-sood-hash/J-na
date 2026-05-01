@@ -1,4 +1,5 @@
 import { PortfolioContent } from '@/hooks/usePortfolioContent';
+import { supabase } from '@/integrations/supabase/client';
 
 // Import certificate images
 import awsCert from '@/assets/certificates/aws-solutions-architecture.png';
@@ -85,22 +86,35 @@ const existingCertificates: Omit<PortfolioContent, 'id' | 'created_at' | 'update
   },
 ];
 
-export const initializeCertificates = () => {
-  // Check if certificates already exist in localStorage
-  const existingData = localStorage.getItem('table_portfolio_content');
-  
-  if (!existingData) {
-    // Initialize with all certificates
-    const certificatesWithIds: PortfolioContent[] = existingCertificates.map((cert, index) => ({
-      ...cert,
-      id: `cert-${index + 1}`,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }));
-    
-    localStorage.setItem('table_portfolio_content', JSON.stringify(certificatesWithIds));
-    return true;
+export const initializeCertificates = async () => {
+  try {
+    // Check if certificates already exist in Supabase
+    const { data, error } = await supabase
+      .from('portfolio_content')
+      .select('count', { count: 'exact' });
+
+    if (error) {
+      console.error('Error checking existing certificates:', error);
+      return false;
+    }
+
+    // If no certificates exist, initialize with defaults
+    if (data && data.length === 0) {
+      const { error: insertError } = await supabase
+        .from('portfolio_content')
+        .insert(existingCertificates);
+
+      if (insertError) {
+        console.error('Error initializing certificates:', insertError);
+        return false;
+      }
+
+      return true;
+    }
+
+    return false;
+  } catch (err) {
+    console.error('Unexpected error in initializeCertificates:', err);
+    return false;
   }
-  
-  return false;
 };
