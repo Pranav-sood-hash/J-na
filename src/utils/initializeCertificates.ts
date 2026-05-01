@@ -1,4 +1,5 @@
 import { PortfolioContent } from '@/hooks/usePortfolioContent';
+import { supabase } from '@/integrations/supabase/client';
 
 // Import certificate images
 import awsCert from '@/assets/certificates/aws-solutions-architecture.png';
@@ -85,22 +86,23 @@ const existingCertificates: Omit<PortfolioContent, 'id' | 'created_at' | 'update
   },
 ];
 
-export const initializeCertificates = () => {
-  // Check if certificates already exist in localStorage
-  const existingData = localStorage.getItem('table_portfolio_content');
-  
-  if (!existingData) {
-    // Initialize with all certificates
-    const certificatesWithIds: PortfolioContent[] = existingCertificates.map((cert, index) => ({
-      ...cert,
-      id: `cert-${index + 1}`,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }));
-    
-    localStorage.setItem('table_portfolio_content', JSON.stringify(certificatesWithIds));
+export const initializeCertificates = async () => {
+  try {
+    // Try to insert certificates - if they already exist, this will silently fail
+    const { error: insertError } = await supabase
+      .from('portfolio_content')
+      .insert(existingCertificates);
+
+    // Ignore "duplicate key" errors - means data already exists
+    if (insertError && !insertError.message?.includes('duplicate')) {
+      console.warn('Could not initialize certificates:', insertError);
+      return false;
+    }
+
+    console.log('Certificates initialized or already exist');
     return true;
+  } catch (err) {
+    console.warn('Unexpected error in initializeCertificates:', err);
+    return false;
   }
-  
-  return false;
 };

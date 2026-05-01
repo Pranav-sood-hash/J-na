@@ -21,18 +21,19 @@ export const usePortfolioContent = (includeHidden: boolean = false) => {
 
   const fetchContent = async () => {
     setIsLoading(true);
+    setError(null);
     try {
-      let allData = supabase
+      const { data, error } = await supabase
         .from('portfolio_content')
         .select('*')
         .order('created_at', { ascending: false });
 
-      // Convert promise-like object to actual promise
-      const { data, error } = await new Promise<any>((resolve) => {
-        (allData as any).then((result: any) => resolve(result));
-      });
-
-      if (error) throw error;
+      if (error) {
+        console.warn('Error fetching portfolio content:', error);
+        setError(error as any);
+        setContent([]);
+        return;
+      }
 
       let filteredData = (data || []) as PortfolioContent[];
 
@@ -42,8 +43,9 @@ export const usePortfolioContent = (includeHidden: boolean = false) => {
 
       setContent(filteredData);
     } catch (err) {
+      console.error('Unexpected error fetching portfolio content:', err);
       setError(err as Error);
-      console.error('Error fetching portfolio content:', err);
+      setContent([]);
     } finally {
       setIsLoading(false);
     }

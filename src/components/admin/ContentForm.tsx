@@ -46,6 +46,7 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
     media_url: initialData?.media_url || '',
     external_link: initialData?.external_link || '',
     tags: initialData?.tags?.join(', ') || '',
+    editingStyle: initialData?.tags?.[0] || '',
     is_visible: initialData?.is_visible ?? true,
   });
 
@@ -55,29 +56,35 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
 
     setIsUploading(true);
     try {
-      // Convert file to data URL for local storage
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const dataUrl = event.target?.result as string;
-        setFormData(prev => ({ ...prev, media_url: dataUrl }));
+      // Upload file to Supabase Storage
+      const filename = `${Date.now()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('portfolio-media')
+        .upload(filename, file);
 
-        toast({
-          title: 'File uploaded',
-          description: 'Your file has been uploaded successfully.',
-        });
-        setIsUploading(false);
-      };
-      reader.onerror = () => {
-        throw new Error('Failed to read file');
-      };
-      reader.readAsDataURL(file);
+      if (error) {
+        throw new Error(error.message || 'Upload failed');
+      }
+
+      // Get public URL for the uploaded file
+      const { data: publicUrlData } = supabase.storage
+        .from('portfolio-media')
+        .getPublicUrl(filename);
+
+      setFormData(prev => ({ ...prev, media_url: publicUrlData.publicUrl }));
+
+      toast({
+        title: 'File uploaded',
+        description: 'Your file has been uploaded successfully.',
+      });
     } catch (error) {
       console.error('Upload error:', error);
       toast({
         title: 'Upload failed',
-        description: 'Failed to upload file. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to upload file. Please try again.',
         variant: 'destructive',
       });
+    } finally {
       setIsUploading(false);
     }
   };
@@ -87,13 +94,23 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
     setIsSubmitting(true);
 
     try {
+      // Combine editing style with other tags
+      let allTags = formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+      if (formData.type === 'video' && formData.editingStyle) {
+        // Add editing style as first tag if not already present
+        if (!allTags.includes(formData.editingStyle)) {
+          allTags = [formData.editingStyle, ...allTags];
+        }
+      }
+
       await onSubmit({
         type: formData.type as 'certificate' | 'video' | 'website',
         title: formData.title,
         description: formData.description || null,
         media_url: formData.media_url || null,
         external_link: formData.external_link || null,
-        tags: formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : null,
+        tags: allTags.length > 0 ? allTags : null,
         is_visible: formData.is_visible,
       });
     } finally {
@@ -259,13 +276,9 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
         <div className="space-y-2">
           <Label>Editing Style</Label>
           <Select
-            value={formData.tags?.split(',')[0]?.trim() || ''}
+            value={formData.editingStyle}
             onValueChange={(value) => {
-              const otherTags = formData.tags?.split(',').slice(1).join(',') || '';
-              setFormData(prev => ({ 
-                ...prev, 
-                tags: value + (otherTags ? `, ${otherTags}` : '') 
-              }));
+              setFormData(prev => ({ ...prev, editingStyle: value }));
             }}
           >
             <SelectTrigger>

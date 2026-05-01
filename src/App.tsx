@@ -18,8 +18,16 @@ const queryClient = new QueryClient();
 
 const App = () => {
   useEffect(() => {
-    // Initialize certificates on app load
-    initializeCertificates();
+    // Initialize certificates on app load (non-blocking)
+    const init = async () => {
+      try {
+        await initializeCertificates();
+      } catch (err) {
+        console.warn('Failed to initialize certificates:', err);
+        // App will continue to work even if initialization fails
+      }
+    };
+    init();
   }, []);
 
   return (
