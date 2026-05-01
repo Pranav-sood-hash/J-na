@@ -88,33 +88,19 @@ const existingCertificates: Omit<PortfolioContent, 'id' | 'created_at' | 'update
 
 export const initializeCertificates = async () => {
   try {
-    // Check if certificates already exist in Supabase
-    const { data, error } = await supabase
+    // Try to insert certificates - if they already exist, this will silently fail
+    const { error: insertError } = await supabase
       .from('portfolio_content')
-      .select('*', { count: 'exact' });
+      .insert(existingCertificates);
 
-    if (error) {
-      console.warn('Could not check existing certificates:', error);
+    // Ignore "duplicate key" errors - means data already exists
+    if (insertError && !insertError.message?.includes('duplicate')) {
+      console.warn('Could not initialize certificates:', insertError);
       return false;
     }
 
-    // If no certificates exist, initialize with defaults
-    if (!data || data.length === 0) {
-      const { error: insertError } = await supabase
-        .from('portfolio_content')
-        .insert(existingCertificates);
-
-      if (insertError) {
-        console.warn('Could not initialize certificates:', insertError);
-        return false;
-      }
-
-      console.log('Certificates initialized successfully');
-      return true;
-    }
-
-    console.log('Certificates already exist');
-    return false;
+    console.log('Certificates initialized or already exist');
+    return true;
   } catch (err) {
     console.warn('Unexpected error in initializeCertificates:', err);
     return false;
