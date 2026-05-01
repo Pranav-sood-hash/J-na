@@ -91,30 +91,32 @@ export const initializeCertificates = async () => {
     // Check if certificates already exist in Supabase
     const { data, error } = await supabase
       .from('portfolio_content')
-      .select('count', { count: 'exact' });
+      .select('*', { count: 'exact' });
 
     if (error) {
-      console.error('Error checking existing certificates:', error);
+      console.warn('Could not check existing certificates:', error);
       return false;
     }
 
     // If no certificates exist, initialize with defaults
-    if (data && data.length === 0) {
+    if (!data || data.length === 0) {
       const { error: insertError } = await supabase
         .from('portfolio_content')
         .insert(existingCertificates);
 
       if (insertError) {
-        console.error('Error initializing certificates:', insertError);
+        console.warn('Could not initialize certificates:', insertError);
         return false;
       }
 
+      console.log('Certificates initialized successfully');
       return true;
     }
 
+    console.log('Certificates already exist');
     return false;
   } catch (err) {
-    console.error('Unexpected error in initializeCertificates:', err);
+    console.warn('Unexpected error in initializeCertificates:', err);
     return false;
   }
 };
