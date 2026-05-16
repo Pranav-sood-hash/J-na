@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ExternalLink, Play, Award, Globe, X, Loader2 } from 'lucide-react';
-import { usePortfolioContent, PortfolioContent } from '@/hooks/usePortfolioContent';
+import { ExternalLink, Play, Award, Globe, X } from 'lucide-react';
 import { isVideoUrl } from '@/utils/mediaUtils';
 
 // Fallback certificate images for migration
@@ -116,22 +115,8 @@ const ProjectsSection = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedProject, setSelectedProject] = useState<DisplayProject | null>(null);
-  
-  // Fetch dynamic content from database
-  const { content: dbContent, isLoading } = usePortfolioContent(false);
 
-  // Convert database content to display format and merge with legacy
-  const projects: DisplayProject[] = dbContent.length > 0 
-    ? dbContent.map((item: PortfolioContent) => ({
-        id: item.id,
-        title: item.title,
-        category: item.type,
-        description: item.description || '',
-        image: item.media_url || undefined,
-        link: item.external_link || undefined,
-        tech: item.tags || undefined,
-      }))
-    : legacyProjects;
+  const projects: DisplayProject[] = legacyProjects;
 
   const filteredProjects = activeCategory === 'all' 
     ? projects 
@@ -199,16 +184,8 @@ const ProjectsSection = () => {
           ))}
         </div>
 
-        {/* Loading State */}
-        {isLoading && (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
-        )}
-
         {/* Projects Grid */}
-        {!isLoading && (
-          <div className="projects-grid grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div className="projects-grid grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {filteredProjects.length === 0 ? (
               <div className="col-span-full text-center py-16">
                 <p className="text-muted-foreground text-lg">No projects available in this category yet.</p>
@@ -281,10 +258,9 @@ const ProjectsSection = () => {
                     )}
                   </div>
                 </button>
-              ))
-            )}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </div>
 
       {/* Project Detail Modal */}
