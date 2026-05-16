@@ -23,7 +23,8 @@ const App = () => {
       try {
         await initializeCertificates();
       } catch (err) {
-        console.warn('Failed to initialize certificates:', err);
+        console.warn('Failed to initialize certificates, app will continue with static data:', err);
+        // App will continue working even if initialization fails
       }
     };
     init();
