@@ -1,9 +1,8 @@
-import { useState } from 'react';
-import { Award, Play, Globe, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Award, Play, Globe } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ContentCard from '@/components/admin/ContentCard';
 import ContentForm from '@/components/admin/ContentForm';
-import { usePortfolioContent, PortfolioContent } from '@/hooks/usePortfolioContent';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -12,6 +11,19 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
+interface PortfolioContent {
+  id: string;
+  type: 'certificate' | 'video' | 'website';
+  title: string;
+  description: string | null;
+  media_url: string | null;
+  external_link: string | null;
+  tags: string[] | null;
+  is_visible: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 const contentTypes = [
   { id: 'certificate', name: 'Certificates', icon: Award },
   { id: 'video', name: 'Videos', icon: Play },
@@ -19,9 +31,21 @@ const contentTypes = [
 ] as const;
 
 const AdminDashboard = () => {
-  const { content, isLoading, updateContent, deleteContent, toggleVisibility } = usePortfolioContent(true);
   const { toast } = useToast();
+  const [content, setContent] = useState<PortfolioContent[]>([]);
   const [editingContent, setEditingContent] = useState<PortfolioContent | null>(null);
+
+  // Load content from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('portfolio_content');
+    if (stored) {
+      try {
+        setContent(JSON.parse(stored));
+      } catch (err) {
+        console.error('Failed to parse stored content:', err);
+      }
+    }
+  }, []);
 
   const handleEdit = (item: PortfolioContent) => {
     setEditingContent(item);
@@ -31,7 +55,13 @@ const AdminDashboard = () => {
     if (!editingContent) return;
 
     try {
-      await updateContent(editingContent.id, data);
+      const updated = content.map(item =>
+        item.id === editingContent.id
+          ? { ...item, ...data, updated_at: new Date().toISOString() }
+          : item
+      );
+      setContent(updated);
+      localStorage.setItem('portfolio_content', JSON.stringify(updated));
       setEditingContent(null);
       toast({
         title: 'Content updated',
@@ -49,7 +79,9 @@ const AdminDashboard = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteContent(id);
+      const updated = content.filter(item => item.id !== id);
+      setContent(updated);
+      localStorage.setItem('portfolio_content', JSON.stringify(updated));
       toast({
         title: 'Content deleted',
         description: 'The content has been removed.',
@@ -66,7 +98,13 @@ const AdminDashboard = () => {
 
   const handleToggleVisibility = async (id: string, isVisible: boolean) => {
     try {
-      await toggleVisibility(id, isVisible);
+      const updated = content.map(item =>
+        item.id === id
+          ? { ...item, is_visible: isVisible }
+          : item
+      );
+      setContent(updated);
+      localStorage.setItem('portfolio_content', JSON.stringify(updated));
       toast({
         title: isVisible ? 'Content visible' : 'Content hidden',
         description: isVisible
@@ -85,16 +123,6 @@ const AdminDashboard = () => {
 
   const getContentByType = (type: string) => {
     return content.filter(item => item.type === type);
-  };
-
-  if (isLoading) {
-    return (
-      <AdminLayout>
-        <div className="flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      </AdminLayout>
-    );
   }
 
   return (
