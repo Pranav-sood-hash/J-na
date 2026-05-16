@@ -1,126 +1,16 @@
-import { Award, Play, Globe } from 'lucide-react';
+import { useState } from 'react';
+import { Award, Play, Globe, Loader2 } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ContentCard from '@/components/admin/ContentCard';
-import awsCert from '@/assets/certificates/aws-solutions-architecture.png';
-import kaggleCert from '@/assets/certificates/kaggle-vampire.png';
-import oracleCert from '@/assets/certificates/oracle-ai-foundations.png';
-import hackUPCert from '@/assets/certificates/hack-uttarpradesh.png';
-import googleCloudCert from '@/assets/certificates/google-cloud-agentic-ai.png';
-import triwizardathonCert from '@/assets/certificates/triwizardathon.png';
-import myJobGrowAICert from '@/assets/certificates/myjobgrow-ai-course.png';
-import myJobGrowInternCert from '@/assets/certificates/myjobgrow-techfest-internship.png';
-
-interface PortfolioContent {
-  id: string;
-  type: 'certificate' | 'video' | 'website';
-  title: string;
-  description: string | null;
-  media_url: string | null;
-  external_link: string | null;
-  tags: string[] | null;
-  is_visible: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-const staticCertificates: PortfolioContent[] = [
-  {
-    id: '1',
-    type: 'certificate',
-    title: 'AWS Solutions Architecture Job Simulation',
-    description: 'Certificate of Completion from AWS & Forage. Completed practical tasks in designing a simple, scalable, hosting architecture over October to November 2025.',
-    media_url: awsCert,
-    external_link: '',
-    tags: ['AWS', 'Cloud Architecture', 'Forage'],
-    is_visible: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    type: 'certificate',
-    title: 'Kaggle Vampire Badge',
-    description: 'Badge Certificate from Kaggle. Successfully earned the Vampire badge on Kaggle platform.',
-    media_url: kaggleCert,
-    external_link: '',
-    tags: ['Kaggle', 'Data Science'],
-    is_visible: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    type: 'certificate',
-    title: 'Oracle Certified Foundations Associate',
-    description: 'Certificate of Recognition from Oracle University. Oracle Cloud Infrastructure 2025 Certified AI Foundations Associate. Recognized by Oracle Corporation as Oracle Certified.',
-    media_url: oracleCert,
-    external_link: '',
-    tags: ['Oracle', 'AI', 'Cloud Infrastructure'],
-    is_visible: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '4',
-    type: 'certificate',
-    title: 'Hack with UttarPradesh 2025',
-    description: 'Certificate of Participation. Actively participated in Hack with UttarPradesh 2025, held on 1st & 2nd November, contributing to innovation, collaboration, & problem-solving. Presented by Chandigarh University Technology Business Incubator.',
-    media_url: hackUPCert,
-    external_link: '',
-    tags: ['Hackathon', 'Innovation', 'Problem Solving'],
-    is_visible: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '5',
-    type: 'certificate',
-    title: 'Google Cloud Agentic AI Day',
-    description: 'Certificate of Participation from Google Cloud & Hack2skill. Recognized for initiative and contribution to the Agentic AI Day, joining a community of changemakers harnessing Agentic AI to address real-world problems.',
-    media_url: googleCloudCert,
-    external_link: '',
-    tags: ['Google Cloud', 'Agentic AI', 'Hack2skill'],
-    is_visible: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '6',
-    type: 'certificate',
-    title: 'Triwizardathon 1.0 Finalist',
-    description: 'Certificate of Participation for successfully qualifying for the Finale Round of Triwizardathon 1.0 organized by Microsoft Learn Student Ambassador - GLA University Chapter, held on 2nd August 2025 at Microsoft Office, Gurugram.',
-    media_url: triwizardathonCert,
-    external_link: '',
-    tags: ['Microsoft', 'MLSA', 'Hackathon'],
-    is_visible: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '7',
-    type: 'certificate',
-    title: 'Artificial Intelligence Upskilling Course',
-    description: 'Certificate of Course Completion from My Job Grow. Successfully completed the Artificial Intelligence Upskilling Course in January 2025, comprising 15 hours of learning and training.',
-    media_url: myJobGrowAICert,
-    external_link: '',
-    tags: ['AI', 'Machine Learning', 'My Job Grow'],
-    is_visible: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '8',
-    type: 'certificate',
-    title: 'AI Internship - IIT Bombay Techfest',
-    description: 'Certificate of Internship Completion from My Job Grow in collaboration with IIT Bombay Techfest. Issued for outstanding achievement in Artificial Intelligence, recognizing successful completion of an internship and advanced projects.',
-    media_url: myJobGrowInternCert,
-    external_link: '',
-    tags: ['AI', 'IIT Bombay', 'Techfest', 'Internship'],
-    is_visible: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
+import ContentForm from '@/components/admin/ContentForm';
+import { usePortfolioContent, PortfolioContent } from '@/hooks/usePortfolioContent';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Dialog,
   DialogContent,
@@ -135,23 +25,83 @@ const contentTypes = [
 ] as const;
 
 const AdminDashboard = () => {
-  const content = staticCertificates;
+  const { content, isLoading, updateContent, deleteContent, toggleVisibility } = usePortfolioContent(true);
+  const { toast } = useToast();
+  const [editingContent, setEditingContent] = useState<PortfolioContent | null>(null);
+
+  const handleEdit = (item: PortfolioContent) => {
+    setEditingContent(item);
+  };
+
+  const handleUpdate = async (data: Omit<PortfolioContent, 'id' | 'created_at' | 'updated_at'>) => {
+    if (!editingContent) return;
+
+    try {
+      await updateContent(editingContent.id, data);
+      setEditingContent(null);
+      toast({
+        title: 'Content updated',
+        description: 'Your changes have been saved.',
+      });
+    } catch (error) {
+      console.error('Update error:', error);
+      toast({
+        title: 'Update failed',
+        description: 'Failed to update content. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteContent(id);
+      toast({
+        title: 'Content deleted',
+        description: 'The content has been removed.',
+      });
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast({
+        title: 'Delete failed',
+        description: 'Failed to delete content. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleToggleVisibility = async (id: string, isVisible: boolean) => {
+    try {
+      await toggleVisibility(id, isVisible);
+      toast({
+        title: isVisible ? 'Content visible' : 'Content hidden',
+        description: isVisible
+          ? 'The content is now visible on your portfolio.'
+          : 'The content is now hidden from your portfolio.',
+      });
+    } catch (error) {
+      console.error('Toggle visibility error:', error);
+      toast({
+        title: 'Update failed',
+        description: 'Failed to update visibility. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const getContentByType = (type: string) => {
     return content.filter(item => item.type === type);
   };
 
-  const handleEdit = (item: PortfolioContent) => {
-    console.log('Edit not implemented - static data only', item);
-  };
-
-  const handleDelete = (id: string) => {
-    console.log('Delete not implemented - static data only', id);
-  };
-
-  const handleToggleVisibility = (id: string, isVisible: boolean) => {
-    console.log('Toggle visibility not implemented - static data only', id, isVisible);
-  };
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center py-24">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -185,7 +135,13 @@ const AdminDashboard = () => {
               {items.length === 0 ? (
                 <div className="bg-muted/30 border border-dashed border-border rounded-xl p-8 text-center">
                   <Icon className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-muted-foreground">No {name.toLowerCase()} available.</p>
+                  <p className="text-muted-foreground">No {name.toLowerCase()} yet.</p>
+                  <a
+                    href="/admin/create"
+                    className="text-primary hover:underline text-sm mt-2 inline-block"
+                  >
+                    Add your first {id}
+                  </a>
                 </div>
               ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -204,6 +160,22 @@ const AdminDashboard = () => {
           );
         })}
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editingContent} onOpenChange={(open) => !open && setEditingContent(null)}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit {editingContent?.type}</DialogTitle>
+          </DialogHeader>
+          {editingContent && (
+            <ContentForm
+              initialData={editingContent}
+              onSubmit={handleUpdate}
+              onCancel={() => setEditingContent(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };

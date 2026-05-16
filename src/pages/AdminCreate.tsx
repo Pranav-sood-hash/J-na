@@ -1,5 +1,9 @@
-import { Award, Play, Globe } from 'lucide-react';
+import { useState } from 'react';
+import { Award, Play, Globe, Check } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
+import ContentForm from '@/components/admin/ContentForm';
+import { usePortfolioContent, PortfolioContent } from '@/hooks/usePortfolioContent';
+import { useToast } from '@/hooks/use-toast';
 
 const contentTypes = [
   { 
@@ -23,6 +27,79 @@ const contentTypes = [
 ];
 
 const AdminCreate = () => {
+  const { createContent } = usePortfolioContent(true);
+  const { toast } = useToast();
+  const [selectedType, setSelectedType] = useState<'certificate' | 'video' | 'website' | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const handleCreate = async (data: Omit<PortfolioContent, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      await createContent(data);
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        setSelectedType(null);
+      }, 2000);
+      toast({
+        title: 'Content created',
+        description: 'Your new content has been added to the portfolio.',
+      });
+    } catch (error) {
+      console.error('Create error:', error);
+      toast({
+        title: 'Creation failed',
+        description: 'Failed to create content. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  if (showSuccess) {
+    return (
+      <AdminLayout>
+        <div className="max-w-md mx-auto py-24 text-center">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
+            <Check className="w-8 h-8 text-primary" />
+          </div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Content Created!</h2>
+          <p className="text-muted-foreground">Your new content has been added to the portfolio.</p>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (selectedType) {
+    const typeInfo = contentTypes.find(t => t.id === selectedType);
+
+    return (
+      <AdminLayout>
+        <div className="max-w-xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              {typeInfo && <typeInfo.icon className="w-6 h-6 text-primary" />}
+              <h1 className="text-2xl font-bold text-foreground">
+                Add New {typeInfo?.name}
+              </h1>
+            </div>
+            <p className="text-muted-foreground">
+              Fill in the details below to add a new {selectedType} to your portfolio.
+            </p>
+          </div>
+
+          {/* Form */}
+          <div className="bg-card border border-border rounded-xl p-6">
+            <ContentForm
+              contentType={selectedType}
+              onSubmit={handleCreate}
+              onCancel={() => setSelectedType(null)}
+            />
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
       <div className="max-w-2xl mx-auto">
@@ -30,23 +107,24 @@ const AdminCreate = () => {
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-foreground mb-2">Create New Content</h1>
           <p className="text-muted-foreground">
-            Database functionality has been removed. Content creation is no longer available.
+            Choose the type of content you want to add to your portfolio.
           </p>
         </div>
 
-        {/* Type Selection - Disabled */}
+        {/* Type Selection */}
         <div className="grid sm:grid-cols-3 gap-4">
           {contentTypes.map(({ id, name, icon: Icon, description }) => (
-            <div
+            <button
               key={id}
-              className="opacity-50 cursor-not-allowed bg-card border border-border rounded-xl p-6 text-left"
+              onClick={() => setSelectedType(id)}
+              className="group bg-card border border-border rounded-xl p-6 text-left transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/5"
             >
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                 <Icon className="w-6 h-6 text-primary" />
               </div>
               <h3 className="font-semibold text-foreground mb-1">{name}</h3>
               <p className="text-sm text-muted-foreground">{description}</p>
-            </div>
+            </button>
           ))}
         </div>
       </div>
