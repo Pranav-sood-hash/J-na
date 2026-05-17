@@ -102,7 +102,8 @@ export const initializeCertificates = async () => {
     console.log('Certificates initialized or already exist');
     return true;
   } catch (err) {
-    console.warn('Unexpected error in initializeCertificates:', err);
+    console.warn('Unexpected error in initializeCertificates - falling back to static data:', err);
+    // App will continue to work with static data if initialization fails
     return false;
   }
 };

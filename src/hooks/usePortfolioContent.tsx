@@ -46,6 +46,7 @@ export const usePortfolioContent = (includeHidden: boolean = false) => {
       console.error('Unexpected error fetching portfolio content:', err);
       setError(err as Error);
       setContent([]);
+      // Return empty array but don't crash - app will continue with no content
     } finally {
       setIsLoading(false);
     }

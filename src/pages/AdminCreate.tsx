@@ -2,8 +2,20 @@ import { useState } from 'react';
 import { Award, Play, Globe, Check } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ContentForm from '@/components/admin/ContentForm';
-import { usePortfolioContent, PortfolioContent } from '@/hooks/usePortfolioContent';
 import { useToast } from '@/hooks/use-toast';
+
+interface PortfolioContent {
+  id: string;
+  type: 'certificate' | 'video' | 'website';
+  title: string;
+  description: string | null;
+  media_url: string | null;
+  external_link: string | null;
+  tags: string[] | null;
+  is_visible: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 const contentTypes = [
   { 
@@ -27,14 +39,26 @@ const contentTypes = [
 ];
 
 const AdminCreate = () => {
-  const { createContent } = usePortfolioContent(true);
   const { toast } = useToast();
   const [selectedType, setSelectedType] = useState<'certificate' | 'video' | 'website' | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handleCreate = async (data: Omit<PortfolioContent, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      await createContent(data);
+      // Create a new content item with generated ID
+      const newContent: PortfolioContent = {
+        ...data,
+        id: Date.now().toString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Store in localStorage
+      const existingContent = localStorage.getItem('portfolio_content');
+      const contentArray = existingContent ? JSON.parse(existingContent) : [];
+      contentArray.push(newContent);
+      localStorage.setItem('portfolio_content', JSON.stringify(contentArray));
+
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
@@ -70,7 +94,7 @@ const AdminCreate = () => {
 
   if (selectedType) {
     const typeInfo = contentTypes.find(t => t.id === selectedType);
-    
+
     return (
       <AdminLayout>
         <div className="max-w-xl mx-auto">

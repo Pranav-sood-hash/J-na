@@ -11,10 +11,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PortfolioContent } from '@/hooks/usePortfolioContent';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { isVideoUrl } from '@/utils/mediaUtils';
+
+interface PortfolioContent {
+  id: string;
+  type: 'certificate' | 'video' | 'website';
+  title: string;
+  description: string | null;
+  media_url: string | null;
+  external_link: string | null;
+  tags: string[] | null;
+  is_visible: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 interface ContentFormProps {
   initialData?: PortfolioContent | null;
@@ -56,36 +67,34 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
 
     setIsUploading(true);
     try {
-      // Upload file to Supabase Storage
-      const filename = `${Date.now()}-${file.name}`;
-      const { data, error } = await supabase.storage
-        .from('portfolio-media')
-        .upload(filename, file);
-
-      if (error) {
-        throw new Error(error.message || 'Upload failed');
-      }
-
-      // Get public URL for the uploaded file
-      const { data: publicUrlData } = supabase.storage
-        .from('portfolio-media')
-        .getPublicUrl(filename);
-
-      setFormData(prev => ({ ...prev, media_url: publicUrlData.publicUrl }));
-
-      toast({
-        title: 'File uploaded',
-        description: 'Your file has been uploaded successfully.',
-      });
+      // Convert file to base64 data URL
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        setFormData(prev => ({ ...prev, media_url: dataUrl }));
+        setIsUploading(false);
+        toast({
+          title: 'File uploaded',
+          description: 'Your file has been uploaded successfully.',
+        });
+      };
+      reader.onerror = () => {
+        setIsUploading(false);
+        toast({
+          title: 'Upload failed',
+          description: 'Failed to read file. Please try again.',
+          variant: 'destructive',
+        });
+      };
+      reader.readAsDataURL(file);
     } catch (error) {
       console.error('Upload error:', error);
+      setIsUploading(false);
       toast({
         title: 'Upload failed',
         description: error instanceof Error ? error.message : 'Failed to upload file. Please try again.',
         variant: 'destructive',
       });
-    } finally {
-      setIsUploading(false);
     }
   };
 
