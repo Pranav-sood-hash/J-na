@@ -19,6 +19,7 @@ export type Database = {
           created_at: string
           description: string | null
           external_link: string | null
+          repo_url: string | null
           id: string
           is_visible: boolean
           media_url: string | null
@@ -31,6 +32,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           external_link?: string | null
+          repo_url?: string | null
           id?: string
           is_visible?: boolean
           media_url?: string | null
@@ -43,6 +45,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           external_link?: string | null
+          repo_url?: string | null
           id?: string
           is_visible?: boolean
           media_url?: string | null

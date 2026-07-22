@@ -45,6 +45,7 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
     description: initialData?.description || '',
     media_url: initialData?.media_url || '',
     external_link: initialData?.external_link || '',
+    repo_url: initialData?.repo_url || '',
     tags: initialData?.tags?.join(', ') || '',
     editingStyle: initialData?.tags?.[0] || '',
     is_visible: initialData?.is_visible ?? true,
@@ -110,6 +111,7 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
         description: formData.description || null,
         media_url: formData.media_url || null,
         external_link: formData.external_link || null,
+        repo_url: formData.type === 'website' ? (formData.repo_url || null) : null,
         tags: allTags.length > 0 ? allTags : null,
         is_visible: formData.is_visible,
       });
@@ -246,7 +248,7 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
       {(formData.type === 'video' || formData.type === 'website') && (
         <div className="space-y-2">
           <Label htmlFor="external_link">
-            {formData.type === 'video' ? 'Video URL (YouTube, Vimeo, etc.)' : 'Website URL'}
+            {formData.type === 'video' ? 'Video URL (YouTube, Vimeo, etc.)' : 'Live Website URL'}
           </Label>
           <Input
             id="external_link"
@@ -268,6 +270,20 @@ const ContentForm = ({ initialData, contentType, onSubmit, onCancel }: ContentFo
               </a>
             </div>
           )}
+        </div>
+      )}
+
+      {/* GitHub Repository URL (ONLY for websites) */}
+      {formData.type === 'website' && (
+        <div className="space-y-2">
+          <Label htmlFor="repo_url">GitHub Repository URL</Label>
+          <Input
+            id="repo_url"
+            type="url"
+            value={formData.repo_url}
+            onChange={(e) => setFormData(prev => ({ ...prev, repo_url: e.target.value }))}
+            placeholder="https://github.com/username/repository"
+          />
         </div>
       )}
 

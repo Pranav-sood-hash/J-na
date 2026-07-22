@@ -8,6 +8,7 @@ export interface PortfolioContent {
   description: string | null;
   media_url: string | null;
   external_link: string | null;
+  repo_url?: string | null;
   tags: string[] | null;
   is_visible: boolean;
   created_at: string;

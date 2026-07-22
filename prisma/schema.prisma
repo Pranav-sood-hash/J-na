@@ -31,6 +31,7 @@ model PortfolioContent {
   description  String?
   mediaUrl     String?  @map("media_url")
   externalLink String?  @map("external_link")
+  repoUrl      String?  @map("repo_url")
   tags         String[]
   isVisible    Boolean  @default(true) @map("is_visible")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ExternalLink, Play, Award, Globe, X, Loader2 } from 'lucide-react';
+import { ExternalLink, Play, Award, Globe, X, Loader2, Github } from 'lucide-react';
 import { usePortfolioContent, PortfolioContent } from '@/hooks/usePortfolioContent';
 import { isVideoUrl } from '@/utils/mediaUtils';
 
@@ -109,6 +109,7 @@ interface DisplayProject {
   description: string;
   image?: string;
   link?: string;
+  repo_url?: string;
   tech?: string[];
 }
 
@@ -129,6 +130,7 @@ const ProjectsSection = () => {
         description: item.description || '',
         image: item.media_url || undefined,
         link: item.external_link || undefined,
+        repo_url: item.repo_url || undefined,
         tech: item.tags || undefined,
       }))
     : legacyProjects;
@@ -393,16 +395,31 @@ const ProjectsSection = () => {
                     </div>
                   )}
 
-                  {selectedProject.link && (
-                    <a
-                      href={selectedProject.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/20 text-foreground hover:bg-primary/30 transition-colors clickable"
-                    >
-                      View Project
-                      <ExternalLink size={16} />
-                    </a>
+                  {(selectedProject.link || selectedProject.repo_url) && (
+                    <div className="flex flex-wrap gap-3">
+                      {selectedProject.link && (
+                        <a
+                          href={selectedProject.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/20 text-foreground hover:bg-primary/30 transition-colors clickable text-sm font-medium"
+                        >
+                          Live Website
+                          <ExternalLink size={16} />
+                        </a>
+                      )}
+                      {selectedProject.repo_url && (
+                        <a
+                          href={selectedProject.repo_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-secondary/80 text-foreground hover:bg-secondary border border-border/50 transition-colors clickable text-sm font-medium"
+                        >
+                          GitHub Repo
+                          <Github size={16} />
+                        </a>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
