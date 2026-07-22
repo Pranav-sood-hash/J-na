@@ -57,31 +57,27 @@ CREATE POLICY "Admins can manage roles"
   WITH CHECK (public.is_admin(auth.uid()));
 
 -- RLS Policies for portfolio_content
-CREATE POLICY "Public can view visible content"
+-- RLS Policies for portfolio_content
+CREATE POLICY "Public can view content"
   ON public.portfolio_content FOR SELECT
   TO anon, authenticated
-  USING (is_visible = true);
+  USING (true);
 
-CREATE POLICY "Admins can view all content"
-  ON public.portfolio_content FOR SELECT
-  TO authenticated
-  USING (public.is_admin(auth.uid()));
-
-CREATE POLICY "Admins can create content"
+CREATE POLICY "Allow create content"
   ON public.portfolio_content FOR INSERT
-  TO authenticated
-  WITH CHECK (public.is_admin(auth.uid()));
+  TO anon, authenticated
+  WITH CHECK (true);
 
-CREATE POLICY "Admins can update content"
+CREATE POLICY "Allow update content"
   ON public.portfolio_content FOR UPDATE
-  TO authenticated
-  USING (public.is_admin(auth.uid()))
-  WITH CHECK (public.is_admin(auth.uid()));
+  TO anon, authenticated
+  USING (true)
+  WITH CHECK (true);
 
-CREATE POLICY "Admins can delete content"
+CREATE POLICY "Allow delete content"
   ON public.portfolio_content FOR DELETE
-  TO authenticated
-  USING (public.is_admin(auth.uid()));
+  TO anon, authenticated
+  USING (true);
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
@@ -107,20 +103,20 @@ CREATE POLICY "Public can view portfolio media"
   TO anon, authenticated
   USING (bucket_id = 'portfolio-media');
 
-CREATE POLICY "Admins can upload portfolio media"
+CREATE POLICY "Allow upload portfolio media"
   ON storage.objects FOR INSERT
-  TO authenticated
-  WITH CHECK (bucket_id = 'portfolio-media' AND public.is_admin(auth.uid()));
+  TO anon, authenticated
+  WITH CHECK (bucket_id = 'portfolio-media');
 
-CREATE POLICY "Admins can update portfolio media"
+CREATE POLICY "Allow update portfolio media"
   ON storage.objects FOR UPDATE
-  TO authenticated
-  USING (bucket_id = 'portfolio-media' AND public.is_admin(auth.uid()));
+  TO anon, authenticated
+  USING (bucket_id = 'portfolio-media');
 
-CREATE POLICY "Admins can delete portfolio media"
+CREATE POLICY "Allow delete portfolio media"
   ON storage.objects FOR DELETE
-  TO authenticated
-  USING (bucket_id = 'portfolio-media' AND public.is_admin(auth.uid()));
+  TO anon, authenticated
+  USING (bucket_id = 'portfolio-media');
 
 -- Enable Realtime for portfolio_content
 ALTER PUBLICATION supabase_realtime ADD TABLE public.portfolio_content;
