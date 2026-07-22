@@ -53,6 +53,25 @@ export const usePortfolioContent = (includeHidden: boolean = false) => {
 
   useEffect(() => {
     fetchContent();
+
+    const channel = supabase
+      .channel('portfolio_content_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'portfolio_content',
+        },
+        () => {
+          fetchContent();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [includeHidden]);
 
   const createContent = async (newContent: Omit<PortfolioContent, 'id' | 'created_at' | 'updated_at'>) => {

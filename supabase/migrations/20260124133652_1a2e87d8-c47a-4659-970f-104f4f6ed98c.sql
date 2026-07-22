@@ -121,3 +121,6 @@ CREATE POLICY "Admins can delete portfolio media"
   ON storage.objects FOR DELETE
   TO authenticated
   USING (bucket_id = 'portfolio-media' AND public.is_admin(auth.uid()));
+
+-- Enable Realtime for portfolio_content
+ALTER PUBLICATION supabase_realtime ADD TABLE public.portfolio_content;
