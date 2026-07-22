@@ -76,30 +76,61 @@ export const usePortfolioContent = (includeHidden: boolean = false) => {
   }, [includeHidden]);
 
   const createContent = async (newContent: Omit<PortfolioContent, 'id' | 'created_at' | 'updated_at'>) => {
-    const { data, error } = await supabase
-      .from('portfolio_content')
-      .insert(newContent)
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('portfolio_content')
+        .insert(newContent)
+        .select()
+        .single();
 
-    if (error) throw error;
-    
-    await fetchContent();
-    return data as PortfolioContent;
+      if (error) throw error;
+      
+      await fetchContent();
+      return data as PortfolioContent;
+    } catch (err: any) {
+      if (err?.message?.includes('repo_url') || err?.code === 'PGRST204') {
+        const { repo_url, ...fallbackContent } = newContent;
+        const { data, error } = await supabase
+          .from('portfolio_content')
+          .insert(fallbackContent)
+          .select()
+          .single();
+        if (error) throw error;
+        await fetchContent();
+        return data as PortfolioContent;
+      }
+      throw err;
+    }
   };
 
   const updateContent = async (id: string, updates: Partial<PortfolioContent>) => {
-    const { data, error } = await supabase
-      .from('portfolio_content')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('portfolio_content')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
 
-    if (error) throw error;
-    
-    await fetchContent();
-    return data as PortfolioContent;
+      if (error) throw error;
+      
+      await fetchContent();
+      return data as PortfolioContent;
+    } catch (err: any) {
+      if (err?.message?.includes('repo_url') || err?.code === 'PGRST204') {
+        const { repo_url, ...fallbackUpdates } = updates;
+        const { data, error } = await supabase
+          .from('portfolio_content')
+          .update(fallbackUpdates)
+          .eq('id', id)
+          .select()
+          .single();
+        if (error) throw error;
+        await fetchContent();
+        return data as PortfolioContent;
+      }
+      throw err;
+    }
   };
 
   const deleteContent = async (id: string) => {
