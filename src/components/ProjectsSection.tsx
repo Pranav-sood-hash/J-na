@@ -121,8 +121,8 @@ const ProjectsSection = () => {
   // Fetch dynamic content from database
   const { content: dbContent, isLoading } = usePortfolioContent(false);
 
-  // Convert database content to display format and merge with legacy
-  const projects: DisplayProject[] = dbContent.length > 0 
+  // Convert database content to display format and deduplicate by title
+  const rawProjects: DisplayProject[] = dbContent.length > 0 
     ? dbContent.map((item: PortfolioContent) => ({
         id: item.id,
         title: item.title,
@@ -134,6 +134,11 @@ const ProjectsSection = () => {
         tech: item.tags || undefined,
       }))
     : legacyProjects;
+
+  // Deduplicate projects so each certificate or project appears only once
+  const projects: DisplayProject[] = Array.from(
+    new Map(rawProjects.map(p => [p.title.trim().toLowerCase(), p])).values()
+  );
 
   const filteredProjects = activeCategory === 'all' 
     ? projects 
