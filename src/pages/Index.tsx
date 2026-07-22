@@ -12,6 +12,7 @@ import SocialSection from '@/components/SocialSection';
 import FinalSection from '@/components/FinalSection';
 import AmbientSound from '@/components/AmbientSound';
 import ThemeToggle from '@/components/ThemeToggle';
+import KineticGrid from '@/components/ui/kinetic-grid';
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -36,7 +37,7 @@ const Index = () => {
   };
 
   return (
-    <div className="bg-background min-h-screen">
+    <KineticGrid globalColor="default" className="min-h-screen">
       {/* Loading Intro */}
       {isLoading && <LoadingIntro onComplete={handleLoadingComplete} />}
 
@@ -68,7 +69,7 @@ const Index = () => {
         {/* Ambient Sound Toggle */}
         <AmbientSound />
       </div>
-    </div>
+    </KineticGrid>
   );
 };
 
